@@ -6,7 +6,6 @@ This project is a simple command-line calculator built using Python, which suppo
 - Basic arithmetic operations: Addition, Subtraction, Multiplication, and Division.
 - Input validation and error handling for invalid inputs and division by zero.
 - Unit tests for the REPL and operation logic.
-- CI/CD setup with GitHub Actions for automated testing and code coverage.
 
 # Installation
 

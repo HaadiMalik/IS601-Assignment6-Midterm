@@ -60,5 +60,13 @@ class Operations:
         """
         This static method takes two numbers (a and b) and returns the result of raising 'a' to the power of 'b' (a ** b).
         Example: if we call Operations.power(2.0, 3.0), it will return 8.0 (since 2^3 = 8).
+        
+        Raises:
+            ValueError: If both base and exponent are zero (0^0).
         """
+        # Handle the case where both base and exponent are zero
+        if a == 0 and b == 0:
+            raise ValueError("0 to the power of 0 is undefined.")
+        
         return a ** b  # This raises 'a' to the power of 'b' and returns the result.
+    

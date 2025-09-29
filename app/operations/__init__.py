@@ -51,6 +51,14 @@ class Operations:
         But if we call Operations.division(10.0, 0.0), it will raise a ValueError and say "Division by zero is not allowed."
         """
         if b == 0:
-            # This part checks if 'b' is zero. If it is, we raise an error and stop the method.
+            # This part "../operation"checks if 'b' is zero. If it is, we raise an error and stop the method.
             raise ValueError("Division by zero is not allowed.")  # This sends an error message when someone tries to divide by zero.
         return a / b  # If 'b' is not zero, we divide the first number (a) by the second number (b) and return the result.
+
+    @staticmethod
+    def power(a: float, b: float) -> float:
+        """
+        This static method takes two numbers (a and b) and returns the result of raising 'a' to the power of 'b' (a ** b).
+        Example: if we call Operations.power(2.0, 3.0), it will return 8.0 (since 2^3 = 8).
+        """
+        return a ** b  # This raises 'a' to the power of 'b' and returns the result.

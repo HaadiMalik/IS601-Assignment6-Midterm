@@ -1,3 +1,5 @@
+*Repo cloned from Assignment 3 and modified*
+
 This project is a simple command-line calculator built using Python, which supports basic arithmetic operations (addition, subtraction, multiplication, and division) via a REPL (Read-Eval-Print Loop) interface. This project also includes unit tests and CI/CD integration using GitHub Actions.
 
 # Features
@@ -16,8 +18,8 @@ Assuming that git is already setup and integrated into the command-line for the 
 1.  **Clone the repository:**
 
     ```
-    git clone https://github.com/HaadiMalik/IS601-Assignment3.git
-    cd IS601-Assignment3
+    git clone https://github.com/HaadiMalik/IS601-Assignment4.git
+    cd IS601-Assignment4
     ```
 
 2.  **Create a virtual environment:**

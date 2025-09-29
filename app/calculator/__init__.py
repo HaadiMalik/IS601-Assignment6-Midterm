@@ -33,6 +33,7 @@ Usage:
         subtract  : Subtracts the second number from the first.
         multiply  : Multiplies two numbers.
         divide    : Divides the first number by the second.
+        power     : Raises the first number to the power of the second.
 
 Special Commands:
     help      : Display this help message.
@@ -44,6 +45,7 @@ Examples:
     subtract 15.5 3.2
     multiply 7 8
     divide 20 4
+    power 2 3
     """
     print(help_message)
 

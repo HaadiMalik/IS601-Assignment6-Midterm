@@ -336,6 +336,78 @@ def test_division_with_zero_numerator():
     # Assert
     assert result == expected_result, f"Expected {a} / {b} to be {expected_result}, got {result}"
 
+# -----------------------------------------------------------------------------------
+# Test Power Method
+# -----------------------------------------------------------------------------------
+
+def test_power_positive_base_positive_exponent():
+    a = 2.0
+    b = 3.0
+    expected_result = 8.0 
+
+    result = Operations.power(a, b)
+
+    assert result == expected_result, f"Expected {a} ** {b} to be {expected_result}, got {result}"
+
+
+def test_power_positive_base_zero_exponent():
+    a = 5.0
+    b = 0.0
+    expected_result = 1.0
+
+    result = Operations.power(a, b)
+
+    assert result == expected_result, f"Expected {a} ** {b} to be {expected_result}, got {result}"
+
+
+def test_power_negative_base_positive_exponent():
+    a = -2.0
+    b = 3.0
+    expected_result = -8.0
+
+    result = Operations.power(a, b)
+
+    assert result == expected_result, f"Expected {a} ** {b} to be {expected_result}, got {result}"
+
+
+def test_power_negative_base_negative_exponent():
+    a = -2.0
+    b = -3.0
+    expected_result = -0.125
+
+    result = Operations.power(a, b)
+
+    assert result == expected_result, f"Expected {a} ** {b} to be {expected_result}, got {result}"
+
+
+def test_power_zero_base_positive_exponent():
+    a = 0.0
+    b = 5.0
+    expected_result = 0.0
+
+    result = Operations.power(a, b)
+
+    assert result == expected_result, f"Expected {a} ** {b} to be {expected_result}, got {result}"
+
+
+def test_power_zero_base_zero_exponent():
+    a = 0.0
+    b = 0.0
+
+    with pytest.raises(ValueError) as info:
+        Operations.power(a, b)
+
+    assert str(info.value) == "0 to the power of 0 is undefined."
+
+
+def test_power_positive_base_negative_exponent():
+    a = 2.0
+    b = -3.0
+    expected_result = 0.125
+
+    result = Operations.power(a, b)
+
+    assert result == expected_result, f"Expected {a} ** {b} to be {expected_result}, got {result}"
 
 # -----------------------------------------------------------------------------------
 # Test Invalid Input Types (Negative Testing)

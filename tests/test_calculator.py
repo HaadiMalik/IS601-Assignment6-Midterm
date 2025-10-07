@@ -156,7 +156,7 @@ def test_clear_history(calculator):
     assert calculator.undo_stack == []
     assert calculator.redo_stack == []
 
-# Test REPL Commands (using patches for input/output handling)
+# ===== REPL Tests =====
 
 @patch('builtins.input', side_effect=['exit'])
 @patch('builtins.print')
@@ -173,8 +173,104 @@ def test_calculator_repl_help(mock_print, mock_input):
     calculator_repl()
     mock_print.assert_any_call("\nAvailable commands:")
 
+
 @patch('builtins.input', side_effect=['add', '2', '3', 'exit'])
 @patch('builtins.print')
 def test_calculator_repl_addition(mock_print, mock_input):
     calculator_repl()
     mock_print.assert_any_call("\nResult: 5")
+
+# Additional REPL Tests
+
+@patch('builtins.input', side_effect=['history', 'clear', 'undo', 'redo', 'exit'])
+@patch('builtins.print')
+def test_repl_history_commands(mock_print, mock_input):
+    # Test history, clear, undo, redo on empty state
+    with patch('app.calculator.Calculator.show_history', return_value=[]):
+        calculator_repl()
+        mock_print.assert_any_call("No calculations in history")
+        mock_print.assert_any_call("History cleared")
+        mock_print.assert_any_call("Nothing to undo")
+        mock_print.assert_any_call("Nothing to redo")
+
+
+@patch('builtins.input', side_effect=['add', '5', '3', 'history', 'undo', 'redo', 'exit'])
+@patch('builtins.print')
+def test_repl_operations_with_history(mock_print, mock_input):
+    # Test operation with history display and undo/redo
+    calculator_repl()
+    mock_print.assert_any_call("\nResult: 8")
+    assert any("Calculation History:" in str(call) for call in mock_print.call_args_list)
+    mock_print.assert_any_call("Operation undone")
+    mock_print.assert_any_call("Operation redone")
+
+
+@patch('builtins.input', side_effect=['add', 'cancel', 'subtract', '10', 'cancel', 'exit'])
+@patch('builtins.print')
+def test_repl_cancel_operations(mock_print, mock_input):
+    # Test cancel at both number prompts
+    calculator_repl()
+    cancelled_calls = sum(1 for call in mock_print.call_args_list if 'Operation cancelled' in str(call))
+    assert cancelled_calls == 2
+
+
+@patch('builtins.input', side_effect=['subtract', '10', '3', 'multiply', '6', '7', 'divide', '20', '4', 'power', '2', '3', 'root', '27', '3', 'exit'])
+@patch('builtins.print')
+def test_repl_all_operations(mock_print, mock_input):
+    # Test all arithmetic operations
+    calculator_repl()
+    mock_print.assert_any_call("\nResult: 7")
+    mock_print.assert_any_call("\nResult: 42")
+    mock_print.assert_any_call("\nResult: 5")
+    mock_print.assert_any_call("\nResult: 8")
+    mock_print.assert_any_call("\nResult: 3")
+
+
+@patch('app.calculator.Calculator.save_history', side_effect=Exception("Save error"))
+@patch('app.calculator.Calculator.load_history', side_effect=Exception("Load error"))
+@patch('builtins.input', side_effect=['save', 'load', 'exit'])
+@patch('builtins.print')
+def test_repl_save_load_errors(mock_print, mock_input, mock_load, mock_save):
+    # Test save and load error handling
+    calculator_repl()
+    assert any("Error saving history" in str(call) for call in mock_print.call_args_list)
+    assert any("Error loading history" in str(call) for call in mock_print.call_args_list)
+
+
+@patch('builtins.input', side_effect=['add', 'invalid', '3', 'divide', '5', '0', 'multiply', '2', '3', 'exit'])
+@patch('builtins.print')
+def test_repl_error_handling_and_continue(mock_print, mock_input):
+    # Test ValidationError, OperationError, then successful operation
+    calculator_repl()
+    print_calls = [str(call) for call in mock_print.call_args_list]
+    assert sum("Error:" in call for call in print_calls) >= 2
+    mock_print.assert_any_call("\nResult: 6")
+
+
+@patch('app.operations.OperationFactory.create_operation', side_effect=RuntimeError("Factory error"))
+@patch('builtins.input', side_effect=['add', '5', '3', 'exit'])
+@patch('builtins.print')
+def test_repl_unexpected_error(mock_print, mock_input, mock_factory):
+    # Test unexpected exception handling
+    calculator_repl()
+    assert any("Unexpected error:" in str(call) for call in mock_print.call_args_list)
+
+
+@patch('app.calculator.Calculator.save_history', side_effect=IOError("Disk error"))
+@patch('builtins.input', side_effect=['unknown_cmd', 'exit'])
+@patch('builtins.print')
+def test_repl_unknown_command_and_exit_error(mock_print, mock_input, mock_save):
+    # Test unknown command and exit with save error
+    calculator_repl()
+    assert any("Unknown command" in str(call) for call in mock_print.call_args_list)
+    assert any("Warning: Could not save history" in str(call) for call in mock_print.call_args_list)
+    mock_print.assert_any_call("Goodbye!")
+
+
+@patch('builtins.input', side_effect=[KeyboardInterrupt(), EOFError()])
+@patch('builtins.print')
+def test_repl_interrupts(mock_print, mock_input):
+    # Test KeyboardInterrupt and EOFError
+    calculator_repl()
+    # EOFError exits immediately
+    mock_print.assert_any_call("\nInput terminated. Exiting...")

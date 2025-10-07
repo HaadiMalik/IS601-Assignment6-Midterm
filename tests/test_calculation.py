@@ -50,6 +50,10 @@ def test_invalid_root():
     with pytest.raises(OperationError, match="Cannot calculate root of negative number"):
         Calculation(operation="Root", operand1=Decimal("-16"), operand2=Decimal("2"))
 
+def test_calculation_failed():
+    with pytest.raises(OperationError, match="Calculation failed:"):
+        Calculation(operation="Power", operand1=Decimal("100"), operand2=Decimal("1000"))
+
 
 def test_unknown_operation():
     with pytest.raises(OperationError, match="Unknown operation"):
@@ -94,6 +98,17 @@ def test_invalid_from_dict():
     with pytest.raises(OperationError, match="Invalid calculation data"):
         Calculation.from_dict(data)
 
+def test_str_representation_subtraction():
+    calc = Calculation(operation="Multiplication", operand1=Decimal("5"), operand2=Decimal("3"))
+    result = str(calc)
+    assert result == "Multiplication(5, 3) = 15"
+
+def test_repr_representation_subtraction():
+    calc = Calculation(operation="Subtraction", operand1=Decimal("5"), operand2=Decimal("3"))
+    result = repr(calc)
+    expected_repr = f"Calculation(operation='Subtraction', operand1=5, operand2=3, result=2, timestamp='{calc.timestamp.isoformat()}')"
+    assert result == expected_repr
+
 
 def test_format_result():
     calc = Calculation(operation="Division", operand1=Decimal("1"), operand2=Decimal("3"))
@@ -107,6 +122,11 @@ def test_equality():
     calc3 = Calculation(operation="Subtraction", operand1=Decimal("5"), operand2=Decimal("3"))
     assert calc1 == calc2
     assert calc1 != calc3
+
+def test_eq_not_implemented():
+    calc = Calculation(operation="Addition", operand1=Decimal("2"), operand2=Decimal("3"))
+    result = calc == "Not a Calculation"
+    assert result is False
 
 
 # New Test to Cover Logging Warning

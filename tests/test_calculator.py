@@ -5,7 +5,9 @@ import pytest
 from unittest.mock import Mock, patch, PropertyMock
 from decimal import Decimal
 from tempfile import TemporaryDirectory
+from app.calculation import Calculation
 from app.calculator import Calculator
+from app.calculator_memento import CalculatorMemento
 from app.calculator_repl import calculator_repl
 from app.calculator_config import CalculatorConfig
 from app.exceptions import OperationError, ValidationError
@@ -272,5 +274,56 @@ def test_repl_unknown_command_and_exit_error(mock_print, mock_input, mock_save):
 def test_repl_interrupts(mock_print, mock_input):
     # Test KeyboardInterrupt and EOFError
     calculator_repl()
-    # EOFError exits immediately
     mock_print.assert_any_call("\nInput terminated. Exiting...")
+
+
+def test_calculator_memento_to_dict():
+    calc = Calculation(operation="Addition", operand1=Decimal("2"), operand2=Decimal("3"))
+    memento = CalculatorMemento(history=[calc])
+    memento_dict = memento.to_dict()
+
+    assert isinstance(memento_dict, dict)
+    assert 'history' in memento_dict
+    assert isinstance(memento_dict['history'], list)
+    assert len(memento_dict['history']) == 1
+    assert 'timestamp' in memento_dict
+    assert isinstance(memento_dict['timestamp'], str)
+
+    calc_dict = memento_dict['history'][0]
+    assert calc_dict['operation'] == "Addition"
+    assert calc_dict['operand1'] == "2"
+    assert calc_dict['operand2'] == "3"
+    assert calc_dict['result'] == "5"
+    assert 'timestamp' in calc_dict
+
+
+# Test for from_dict()
+def test_calculator_memento_from_dict():
+    calc = Calculation(operation="Addition", operand1=Decimal("2"), operand2=Decimal("3"))
+    memento_dict = {
+        'history': [calc.to_dict()],  # Serialize a sample calculation
+        'timestamp': datetime.datetime.now().isoformat()  # Current timestamp in ISO format
+    }
+
+    memento_restored = CalculatorMemento.from_dict(memento_dict)
+
+    assert isinstance(memento_restored, CalculatorMemento)
+    assert len(memento_restored.history) == 1
+    assert memento_restored.history[0].operation == "Addition"
+    assert memento_restored.history[0].operand1 == Decimal("2")
+    assert memento_restored.history[0].operand2 == Decimal("3")
+    assert memento_restored.history[0].result == Decimal("5")
+    assert isinstance(memento_restored.timestamp, datetime.datetime)
+
+    assert memento_restored.timestamp.isoformat() == memento_dict['timestamp']
+
+
+# Test for from_dict() with missing or invalid data
+def test_calculator_memento_from_dict_invalid():
+    invalid_dict = {
+        'history': [],  # No history provided
+        'timestamp': "invalid_timestamp"  # Invalid timestamp format
+    }
+
+    with pytest.raises(ValueError):
+        CalculatorMemento.from_dict(invalid_dict)

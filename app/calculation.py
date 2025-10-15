@@ -60,12 +60,29 @@ class Calculation:
             "Subtraction": lambda x, y: x - y,
             "Multiplication": lambda x, y: x * y,
             "Division": lambda x, y: x / y if y != 0 else self._raise_div_zero(),
-            "Power": lambda x, y: Decimal(pow(float(x), float(y))) if y >= 0 else self._raise_neg_power(),
+            "Power": lambda x, y: (
+                Decimal(pow(float(x), float(y)))
+                if y >= 0
+                else self._raise_neg_power()
+            ),
             "Root": lambda x, y: (
                 Decimal(pow(float(x), 1 / float(y))) 
                 if x >= 0 and y != 0 
                 else self._raise_invalid_root(x, y)
-            )
+            ),
+            "Modulus": lambda x, y: (
+                x % y if y != 0
+                else self._raise_div_zero()
+            ),
+            "Int_Divide": lambda x, y: (
+                x // y if y != 0
+                else self._raise_div_zero()
+            ),
+            "Percente": lambda x, y: (
+                (x / y) * 100 if y != 0
+                else self._raise_div_zero()
+            ),
+            "Abs_Diff": lambda x, y: abs(x - y),
         }
 
         # Retrieve the operation function based on the operation name

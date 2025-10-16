@@ -54,8 +54,20 @@ def test_logging_setup(logging_info_mock):
         mock_log_file.return_value = Path('/tmp/logs/calculator.log')
         
         # Instantiate calculator to trigger logging
-        calculator = Calculator(CalculatorConfig())
+        Calculator(CalculatorConfig())
         logging_info_mock.assert_any_call("Calculator initialized with configuration")
+
+@patch('app.calculator.logging.basicConfig', side_effect=PermissionError("Cannot write to log file"))
+def test_logging_setup_exception(logging_basicConfig_mock):
+    with patch.object(CalculatorConfig, 'log_dir', new_callable=PropertyMock) as mock_log_dir, \
+         patch.object(CalculatorConfig, 'log_file', new_callable=PropertyMock) as mock_log_file:
+        
+        mock_log_dir.return_value = Path('/tmp/logs')
+        mock_log_file.return_value = Path('/tmp/logs/calculator.log')
+        
+        # This should raise the PermissionError from basicConfig
+        with pytest.raises(PermissionError, match="Cannot write to log file"):
+            Calculator(CalculatorConfig())
 
 # Test Adding and Removing Observers
 
@@ -146,7 +158,65 @@ def test_load_history(mock_exists, mock_read_csv, calculator):
     except OperationError:
         pytest.fail("Loading history failed due to OperationError")
         
-            
+def test_history_exceeds_max_history(calculator):
+    # Set a small max_history_size for testing
+    calculator.config.max_history_size = 3
+    
+    operation = OperationFactory.create_operation('add')
+    calculator.set_operation(operation)
+    
+    # Perform 4 operations to exceed the max history size of 3
+    calculator.perform_operation(1, 1)
+    calculator.perform_operation(2, 2)
+    calculator.perform_operation(3, 3)
+    calculator.perform_operation(4, 4)
+    
+    assert len(calculator.history) == 3
+    
+    assert calculator.history[0].operand1 == Decimal('2')
+    assert calculator.history[1].operand1 == Decimal('3')
+    assert calculator.history[2].operand1 == Decimal('4')
+
+@patch('app.calculator.pd.DataFrame.to_csv', side_effect=IOError("Disk error"))
+def test_save_history_exception(mock_to_csv, calculator):
+    # Test that exceptions during save_history are caught
+    operation = OperationFactory.create_operation('add')
+    calculator.set_operation(operation)
+    calculator.perform_operation(2, 3)
+    
+    with pytest.raises(OperationError, match="Failed to save history: Disk error"):
+        calculator.save_history()
+
+@patch('app.calculator.pd.read_csv', side_effect=IOError("Cannot read file"))
+@patch('app.calculator.Path.exists', return_value=True)
+def test_load_history_exception(mock_exists, mock_read_csv, calculator):
+    # Test that exceptions during load_history are caught
+    with pytest.raises(OperationError, match="Failed to load history: Cannot read file"):
+        calculator.load_history()
+
+def test_get_history_dataframe(calculator):
+    # Test that get_history_dataframe returns a proper pandas DataFrame
+    operation = OperationFactory.create_operation('add')
+    calculator.set_operation(operation)
+    
+    calculator.perform_operation(2, 3)
+    calculator.perform_operation(5, 7)
+    
+    df = calculator.get_history_dataframe()
+    assert isinstance(df, pd.DataFrame)
+    
+    assert len(df) == 2
+    assert list(df.columns) == ['operation', 'operand1', 'operand2', 'result', 'timestamp']
+    
+    assert df.iloc[0]['operation'] == 'Addition'
+    assert df.iloc[0]['operand1'] == '2'
+    assert df.iloc[0]['operand2'] == '3'
+    assert df.iloc[0]['result'] == '5'
+    
+    assert df.iloc[1]['operand1'] == '5'
+    assert df.iloc[1]['operand2'] == '7'
+    assert df.iloc[1]['result'] == '12'
+
 # Test Clearing History
 
 def test_clear_history(calculator):
@@ -227,6 +297,14 @@ def test_repl_all_operations(mock_print, mock_input):
     mock_print.assert_any_call("\nResult: 8")
     mock_print.assert_any_call("\nResult: 3")
 
+@patch('app.calculator.InputValidator.validate_number', side_effect=Exception("Unexpected error"))
+def test_perform_operation_unexpected_exception(mock_validate, calculator):
+    # Test that unexpected exceptions in perform_operation are caught
+    operation = OperationFactory.create_operation('add')
+    calculator.set_operation(operation)
+    
+    with pytest.raises(OperationError, match="Operation failed: Unexpected error"):
+        calculator.perform_operation(2, 3)
 
 @patch('app.calculator.Calculator.save_history', side_effect=Exception("Save error"))
 @patch('app.calculator.Calculator.load_history', side_effect=Exception("Load error"))

@@ -75,7 +75,7 @@ class Calculation:
                 else self._raise_div_zero()
             ),
             "Int_Divide": lambda x, y: (
-                x // y if y != 0
+                int(x / y) if y != 0
                 else self._raise_div_zero()
             ),
             "Percent": lambda x, y: (

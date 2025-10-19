@@ -10,6 +10,13 @@ from app.exceptions import OperationError, ValidationError
 from app.history import AutoSaveObserver, LoggingObserver
 from app.operations import OperationFactory
 
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+PRECISION = int(os.getenv('CALCULATOR_PRECISION', 10))
+MAX_INPUT_VALUE = Decimal(os.getenv('CALCULATOR_MAX_INPUT_VALUE', '1e999'))
 
 def calculator_repl():
     """
@@ -115,10 +122,17 @@ def calculator_repl():
                         if a.lower() == 'cancel':
                             print("Operation cancelled")
                             continue
+                        # if Decimal(a) > MAX_INPUT_VALUE:
+                        #     print(f"Error: Input exceeds maximum allowed value of {MAX_INPUT_VALUE}")
+                        #     continue
+
                         b = input("Second number: ")
                         if b.lower() == 'cancel':
                             print("Operation cancelled")
                             continue
+                        # if Decimal(b) > MAX_INPUT_VALUE:
+                        #     print(f"Error: Input exceeds maximum allowed value of {MAX_INPUT_VALUE}")
+                        #     continue
 
                         # Create the appropriate operation instance using the Factory pattern
                         operation = OperationFactory.create_operation(command)
@@ -130,6 +144,8 @@ def calculator_repl():
                         # Normalize the result if it's a Decimal
                         if isinstance(result, Decimal):
                             result = result.normalize()
+                            if len(str(result)[str(result).find('.') + 1:]) > PRECISION:
+                                result = round(result, PRECISION)
 
                         print(f"\nResult: {result}")
                     except (ValidationError, OperationError) as e:

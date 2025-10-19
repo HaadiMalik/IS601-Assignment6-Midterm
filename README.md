@@ -1,14 +1,27 @@
 *Repo cloned from Assignment 3 and modified*  
-*Repo cloned from Assignment 4 and modified*
+*Repo cloned from Assignment 4 and modified*  
+*Repo cloned from Assignment 5 and modified*
 
-This project is a simple command-line calculator built using Python, which supports arithmetic operations (addition, subtraction, multiplication, division, power, and square-root) via a REPL (Read-Eval-Print Loop) interface. This project also includes unit tests and CI/CD integration using GitHub Actions.
+This project is a simple command-line calculator built using Python. which supports arithmetic operations via a REPL (Read-Eval-Print Loop) interface. This project also includes unit tests and CI/CD integration using GitHub Actions.
 
 # Features
 
 - REPL Interface for continuous user interaction.
-- Arithmetic operations: Addition, Subtraction, Multiplication, Division, Power, and Square-Root.
-- Input validation and error handling for invalid inputs and division by zero.
+- Arithmetic operations:
+    - Addition,
+    - Subtraction,
+    - Multiplication,
+    - Division,
+    - Power,
+    - Root,
+    - Modulus,
+    - Integer Division,
+    - Percent,
+    - Absolute Difference.
+- Input validation and error handling for invalid inputs.
 - Unit tests for the REPL and operation logic.
+- Auto-saving calculation history and optional clearing.
+- Load from and save to file in *.csv* format.
 
 # Installation
 
@@ -19,8 +32,8 @@ Assuming that git is already setup and integrated into the command-line for the 
 1.  **Clone the repository:**
 
     ```
-    git clone https://github.com/HaadiMalik/IS601-Assignment5.git
-    cd IS601-Assignment5
+    git clone https://github.com/HaadiMalik/IS601-Assignment6-Midterm.git
+    cd IS601-Assignment6-Midterm
     ```
 
 2.  **Create a virtual environment:**
@@ -61,7 +74,25 @@ Once the environment is set up, you can start the calculator REPL by running:
 python main.py
 ```
 
-You will be prompted to enter a mathematical operation ( + , - , \* , / , ^ , √ ) and two numbers. The calculator will evaluate the operation and print the result.
+You will see the following upon starting:
+
+![Starting the program](readme-images/start.png)
+
+
+To see the extent of calculator commands, enter 'help' as prompted:
+
+![The help menu](readme-images/help.png)
+
+
+The REPL will then wait for another command. Assuming the next prompt is a valid operation, you will be asked to enter two numbers, one after another:
+
+![Enter 'add' and two more numbers (a, b)](readme-images/operation.png)
+
+
+And then after entering both and pressing enter/return, the result will show up in the following format:
+
+![Result of 'add'](readme-images/result.png)
+
 
 ## Running Tests
 

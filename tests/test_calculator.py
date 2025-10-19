@@ -13,6 +13,9 @@ from app.calculator_config import CalculatorConfig
 from app.exceptions import OperationError, ValidationError
 from app.history import LoggingObserver, AutoSaveObserver
 from app.operations import OperationFactory
+from colorama import Fore, Style, init
+
+init(autoreset=True)
 
 # Fixture to initialize Calculator with a temporary directory for file paths
 @pytest.fixture
@@ -52,7 +55,7 @@ def test_repl_fatal_error_during_initialization(mock_print, mock_logging_error, 
     with pytest.raises(RuntimeError, match="Initialization failed"):
         calculator_repl()
     
-    mock_print.assert_any_call("Fatal error: Initialization failed")
+    assert any(f"{Fore.RED}Fatal error: Initialization failed{Style.RESET_ALL}")
     mock_logging_error.assert_called_once_with("Fatal error in calculator REPL: Initialization failed")
 
 # Test Logging Setup
@@ -64,7 +67,6 @@ def test_logging_setup(logging_info_mock):
         mock_log_dir.return_value = Path('/tmp/logs')
         mock_log_file.return_value = Path('/tmp/logs/calculator.log')
         
-        # Instantiate calculator to trigger logging
         Calculator(CalculatorConfig())
         logging_info_mock.assert_any_call("Calculator initialized with configuration")
 
@@ -76,7 +78,6 @@ def test_logging_setup_exception(logging_basicConfig_mock):
         mock_log_dir.return_value = Path('/tmp/logs')
         mock_log_file.return_value = Path('/tmp/logs/calculator.log')
         
-        # This should raise the PermissionError from basicConfig
         with pytest.raises(PermissionError, match="Cannot write to log file"):
             Calculator(CalculatorConfig())
 
@@ -150,8 +151,8 @@ def test_save_history(mock_to_csv, calculator):
 def test_repl_save_success(mock_print, mock_input, mock_save_history):
     calculator_repl()
     assert mock_save_history.call_count == 2
-    mock_print.assert_any_call("History saved successfully")
-    mock_print.assert_any_call("Goodbye!")
+    mock_print.assert_any_call(f"{Fore.GREEN}History saved successfully.{Style.RESET_ALL}")
+    mock_print.assert_any_call(f"{Fore.RED}{Style.BRIGHT}Goodbye!{Style.RESET_ALL}")
 
 @patch('app.calculator.pd.read_csv')
 @patch('app.calculator.Path.exists', return_value=True)
@@ -185,8 +186,8 @@ def test_repl_load_success(mock_print, mock_input, mock_load_history):
     # Simulate successful load
     calculator_repl()
     assert mock_load_history.call_count == 2
-    mock_print.assert_any_call("History loaded successfully")
-    mock_print.assert_any_call("Goodbye!")
+    mock_print.assert_any_call(f"{Fore.GREEN}History loaded successfully{Style.RESET_ALL}")
+    mock_print.assert_any_call(f"{Fore.RED}{Style.BRIGHT}Goodbye!{Style.RESET_ALL}")
 
 def test_history_exceeds_max_history(calculator):
     # Set a small max_history_size for testing
@@ -266,21 +267,21 @@ def test_calculator_repl_exit(mock_print, mock_input):
     with patch('app.calculator.Calculator.save_history') as mock_save_history:
         calculator_repl()
         mock_save_history.assert_called_once()
-        mock_print.assert_any_call("History saved successfully.")
-        mock_print.assert_any_call("Goodbye!")
+        mock_print.assert_any_call(f"{Fore.GREEN}History saved successfully.{Style.RESET_ALL}")
+        mock_print.assert_any_call(f"{Fore.RED}{Style.BRIGHT}Goodbye!{Style.RESET_ALL}")
 
 @patch('builtins.input', side_effect=['help', 'exit'])
 @patch('builtins.print')
 def test_calculator_repl_help(mock_print, mock_input):
     calculator_repl()
-    mock_print.assert_any_call("\nAvailable commands:")
+    mock_print.assert_any_call(f"\n{Fore.CYAN}Available commands:{Style.RESET_ALL}")
 
 
 @patch('builtins.input', side_effect=['add', '2', '3', 'exit'])
 @patch('builtins.print')
 def test_calculator_repl_addition(mock_print, mock_input):
     calculator_repl()
-    mock_print.assert_any_call("\nResult: 5")
+    mock_print.assert_any_call(f"\n{Fore.GREEN}{Style.BRIGHT}Result: 5{Style.RESET_ALL}")
 
 # Additional REPL Tests
 
@@ -290,10 +291,10 @@ def test_repl_history_commands(mock_print, mock_input):
     # Test history, clear, undo, redo on empty state
     with patch('app.calculator.Calculator.show_history', return_value=[]):
         calculator_repl()
-        mock_print.assert_any_call("No calculations in history")
-        mock_print.assert_any_call("History cleared")
-        mock_print.assert_any_call("Nothing to undo")
-        mock_print.assert_any_call("Nothing to redo")
+        mock_print.assert_any_call(f"{Fore.YELLOW}No calculations in history{Style.RESET_ALL}")
+        mock_print.assert_any_call(f"{Fore.GREEN}History cleared{Style.RESET_ALL}")
+        mock_print.assert_any_call(f"{Fore.YELLOW}Nothing to undo{Style.RESET_ALL}")
+        mock_print.assert_any_call(f"{Fore.YELLOW}Nothing to redo{Style.RESET_ALL}")
 
 
 @patch('builtins.input', side_effect=['add', '5', '3', 'history', 'undo', 'redo', 'exit'])
@@ -301,10 +302,10 @@ def test_repl_history_commands(mock_print, mock_input):
 def test_repl_operations_with_history(mock_print, mock_input):
     # Test operation with history display and undo/redo
     calculator_repl()
-    mock_print.assert_any_call("\nResult: 8")
+    mock_print.assert_any_call(f"\n{Fore.GREEN}{Style.BRIGHT}Result: 8{Style.RESET_ALL}")
     assert any("Calculation History:" in str(call) for call in mock_print.call_args_list)
-    mock_print.assert_any_call("Operation undone")
-    mock_print.assert_any_call("Operation redone")
+    mock_print.assert_any_call(f"{Fore.GREEN}Operation undone{Style.RESET_ALL}")
+    mock_print.assert_any_call(f"{Fore.GREEN}Operation redone{Style.RESET_ALL}")
 
 
 @patch('builtins.input', side_effect=['add', 'cancel', 'subtract', '10', 'cancel', 'exit'])
@@ -332,16 +333,16 @@ def test_repl_cancel_operations(mock_print, mock_input):
 def test_repl_all_operations(mock_print, mock_input):
     # Test all arithmetic operations
     calculator_repl()
-    mock_print.assert_any_call("\nResult: 8")               # add
-    mock_print.assert_any_call("\nResult: 7")               # subtract
-    mock_print.assert_any_call("\nResult: 42")              # multiply
-    mock_print.assert_any_call("\nResult: 3.3333333333")    # divide
-    mock_print.assert_any_call("\nResult: 8")               # power
-    mock_print.assert_any_call("\nResult: 3")               # root
-    mock_print.assert_any_call("\nResult: 0")               # modulus
-    mock_print.assert_any_call("\nResult: 3")               # int_divide
-    mock_print.assert_any_call("\nResult: 16")              # percent
-    mock_print.assert_any_call("\nResult: 8")               # abs_diff
+    mock_print.assert_any_call(f"\n{Fore.GREEN}{Style.BRIGHT}Result: 8{Style.RESET_ALL}")               # add
+    mock_print.assert_any_call(f"\n{Fore.GREEN}{Style.BRIGHT}Result: 7{Style.RESET_ALL}")               # subtract
+    mock_print.assert_any_call(f"\n{Fore.GREEN}{Style.BRIGHT}Result: 42{Style.RESET_ALL}")              # multiply
+    mock_print.assert_any_call(f"\n{Fore.GREEN}{Style.BRIGHT}Result: 3.3333333333{Style.RESET_ALL}")    # divide
+    mock_print.assert_any_call(f"\n{Fore.GREEN}{Style.BRIGHT}Result: 8{Style.RESET_ALL}")               # power
+    mock_print.assert_any_call(f"\n{Fore.GREEN}{Style.BRIGHT}Result: 3{Style.RESET_ALL}")               # root
+    mock_print.assert_any_call(f"\n{Fore.GREEN}{Style.BRIGHT}Result: 0{Style.RESET_ALL}")               # modulus
+    mock_print.assert_any_call(f"\n{Fore.GREEN}{Style.BRIGHT}Result: 3{Style.RESET_ALL}")               # int_divide
+    mock_print.assert_any_call(f"\n{Fore.GREEN}{Style.BRIGHT}Result: 16{Style.RESET_ALL}")              # percent
+    mock_print.assert_any_call(f"\n{Fore.GREEN}{Style.BRIGHT}Result: 8{Style.RESET_ALL}")               # abs_diff
 
 @patch('app.calculator.InputValidator.validate_number', side_effect=Exception("Unexpected error"))
 def test_perform_operation_unexpected_exception(mock_validate, calculator):
@@ -370,7 +371,7 @@ def test_repl_error_handling_and_continue(mock_print, mock_input):
     calculator_repl()
     print_calls = [str(call) for call in mock_print.call_args_list]
     assert sum("Error:" in call for call in print_calls) >= 2
-    mock_print.assert_any_call("\nResult: 6")
+    mock_print.assert_any_call(f"\n{Fore.GREEN}{Style.BRIGHT}Result: 6{Style.RESET_ALL}")
 
 
 @patch('app.operations.OperationFactory.create_operation', side_effect=RuntimeError("Factory error"))
@@ -390,7 +391,7 @@ def test_repl_unknown_command_and_exit_error(mock_print, mock_input, mock_save):
     calculator_repl()
     assert any("Unknown command" in str(call) for call in mock_print.call_args_list)
     assert any("Warning: Could not save history" in str(call) for call in mock_print.call_args_list)
-    mock_print.assert_any_call("Goodbye!")
+    mock_print.assert_any_call(f"{Fore.RED}{Style.BRIGHT}Goodbye!{Style.RESET_ALL}")
 
 
 @patch('builtins.input', side_effect=[KeyboardInterrupt(), EOFError()])
@@ -398,7 +399,7 @@ def test_repl_unknown_command_and_exit_error(mock_print, mock_input, mock_save):
 def test_repl_interrupts(mock_print, mock_input):
     # Test KeyboardInterrupt and EOFError
     calculator_repl()
-    mock_print.assert_any_call("\nInput terminated. Exiting...")
+    mock_print.assert_any_call(f"\n{Fore.CYAN}Input terminated. Exiting...{Style.RESET_ALL}")
 
 @patch('builtins.input', side_effect=[Exception("Unexpected loop error"), 'exit'])
 @patch('builtins.print')
@@ -406,7 +407,7 @@ def test_repl_exception_in_loop(mock_print, mock_input):
     # Test generic exception handler in main loop
     calculator_repl()
     assert any("Error: Unexpected loop error" in str(call) for call in mock_print.call_args_list)
-    mock_print.assert_any_call("Goodbye!")
+    mock_print.assert_any_call(f"{Fore.RED}{Style.BRIGHT}Goodbye!{Style.RESET_ALL}")
 
 def test_calculator_memento_to_dict():
     calc = Calculation(operation="Addition", operand1=Decimal("2"), operand2=Decimal("3"))

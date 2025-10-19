@@ -65,7 +65,7 @@ def calculator_repl():
                         print(f"{Fore.GREEN}History saved successfully.{Style.RESET_ALL}")
                     except Exception as e:
                         print(f"{Fore.YELLOW}Warning: Could not save history: {e}{Style.RESET_ALL}")
-                    print(f"{Fore.CYAN}Goodbye!{Style.RESET_ALL}")
+                    print(f"{Fore.RED}{Style.BRIGHT}Goodbye!{Style.RESET_ALL}")
                     break
 
                 if command == 'history':
@@ -179,6 +179,6 @@ def calculator_repl():
 
     except Exception as e:
         # Handle fatal errors during initialization
-        print(f"{Fore.RED}Fatal error: {e}{Style.RESET_ALL}")
+        print(f"{Fore.RED}{Style.BRIGHT}Fatal error: {e}{Style.RESET_ALL}")
         logging.error(f"Fatal error in calculator REPL: {e}")
         raise

@@ -270,7 +270,7 @@ class Modulus(Operation):
         """
         super().validate_operands(a, b)
         if b == 0:
-            raise ValidationError("Division by zero is not allowed in modulus operation")
+            raise ValidationError("Modulus by zero is not allowed")
 
     def execute(self, a: Decimal, b: Decimal) -> Decimal:
         """
@@ -309,7 +309,7 @@ class Int_Divide(Operation):
         """
         super().validate_operands(a, b)
         if b == 0:
-            raise ValidationError("Division by zero is not allowed in integer division")
+            raise ValidationError("Integer division by zero is not allowed")
 
     def execute(self, a: Decimal, b: Decimal) -> Decimal:
         """

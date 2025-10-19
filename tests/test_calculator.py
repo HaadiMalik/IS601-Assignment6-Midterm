@@ -3,7 +3,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 from unittest.mock import Mock, patch, PropertyMock
-from decimal import Decimal
+from decimal import Decimal, getcontext
 from tempfile import TemporaryDirectory
 from app.calculation import Calculation
 from app.calculator import Calculator
@@ -43,6 +43,17 @@ def test_calculator_initialization(calculator):
     assert calculator.undo_stack == []
     assert calculator.redo_stack == []
     assert calculator.operation_strategy is None
+
+@patch('app.calculator_repl.Calculator.__init__', side_effect=RuntimeError("Initialization failed"))
+@patch('app.calculator_repl.logging.error')
+@patch('builtins.print')
+def test_repl_fatal_error_during_initialization(mock_print, mock_logging_error, mock_calc_init):
+    # Test the fatal error handler when Calculator initialization fails
+    with pytest.raises(RuntimeError, match="Initialization failed"):
+        calculator_repl()
+    
+    mock_print.assert_any_call("Fatal error: Initialization failed")
+    mock_logging_error.assert_called_once_with("Fatal error in calculator REPL: Initialization failed")
 
 # Test Logging Setup
 
@@ -133,6 +144,15 @@ def test_save_history(mock_to_csv, calculator):
     calculator.save_history()
     mock_to_csv.assert_called_once()
 
+@patch('app.calculator.Calculator.save_history')
+@patch('builtins.input', side_effect=['save', 'exit'])
+@patch('builtins.print')
+def test_repl_save_success(mock_print, mock_input, mock_save_history):
+    calculator_repl()
+    assert mock_save_history.call_count == 2
+    mock_print.assert_any_call("History saved successfully")
+    mock_print.assert_any_call("Goodbye!")
+
 @patch('app.calculator.pd.read_csv')
 @patch('app.calculator.Path.exists', return_value=True)
 def test_load_history(mock_exists, mock_read_csv, calculator):
@@ -158,6 +178,16 @@ def test_load_history(mock_exists, mock_read_csv, calculator):
     except OperationError:
         pytest.fail("Loading history failed due to OperationError")
         
+@patch('app.calculator.Calculator.load_history')
+@patch('builtins.input', side_effect=['load', 'exit'])
+@patch('builtins.print')
+def test_repl_load_success(mock_print, mock_input, mock_load_history):
+    # Simulate successful load
+    calculator_repl()
+    assert mock_load_history.call_count == 2
+    mock_print.assert_any_call("History loaded successfully")
+    mock_print.assert_any_call("Goodbye!")
+
 def test_history_exceeds_max_history(calculator):
     # Set a small max_history_size for testing
     calculator.config.max_history_size = 3
@@ -286,16 +316,32 @@ def test_repl_cancel_operations(mock_print, mock_input):
     assert cancelled_calls == 2
 
 
-@patch('builtins.input', side_effect=['subtract', '10', '3', 'multiply', '6', '7', 'divide', '20', '4', 'power', '2', '3', 'root', '27', '3', 'exit'])
+@patch('builtins.input', side_effect=[
+    'add', '5', '3',
+    'subtract', '10', '3',
+    'multiply', '6', '7',
+    'divide', '20', '6',
+    'power', '2', '3',
+    'root', '27', '3',
+    'modulus', '10', '2',
+    'int_divide', '19', '5',
+    'percent', '20', '80',
+    'abs_diff', '15', '7',
+    'exit'])
 @patch('builtins.print')
 def test_repl_all_operations(mock_print, mock_input):
     # Test all arithmetic operations
     calculator_repl()
-    mock_print.assert_any_call("\nResult: 7")
-    mock_print.assert_any_call("\nResult: 42")
-    mock_print.assert_any_call("\nResult: 5")
-    mock_print.assert_any_call("\nResult: 8")
-    mock_print.assert_any_call("\nResult: 3")
+    mock_print.assert_any_call("\nResult: 8")               # add
+    mock_print.assert_any_call("\nResult: 7")               # subtract
+    mock_print.assert_any_call("\nResult: 42")              # multiply
+    mock_print.assert_any_call("\nResult: 3.3333333333")    # divide
+    mock_print.assert_any_call("\nResult: 8")               # power
+    mock_print.assert_any_call("\nResult: 3")               # root
+    mock_print.assert_any_call("\nResult: 0")               # modulus
+    mock_print.assert_any_call("\nResult: 3")               # int_divide
+    mock_print.assert_any_call("\nResult: 16")              # percent
+    mock_print.assert_any_call("\nResult: 8")               # abs_diff
 
 @patch('app.calculator.InputValidator.validate_number', side_effect=Exception("Unexpected error"))
 def test_perform_operation_unexpected_exception(mock_validate, calculator):
@@ -354,6 +400,13 @@ def test_repl_interrupts(mock_print, mock_input):
     calculator_repl()
     mock_print.assert_any_call("\nInput terminated. Exiting...")
 
+@patch('builtins.input', side_effect=[Exception("Unexpected loop error"), 'exit'])
+@patch('builtins.print')
+def test_repl_exception_in_loop(mock_print, mock_input):
+    # Test generic exception handler in main loop
+    calculator_repl()
+    assert any("Error: Unexpected loop error" in str(call) for call in mock_print.call_args_list)
+    mock_print.assert_any_call("Goodbye!")
 
 def test_calculator_memento_to_dict():
     calc = Calculation(operation="Addition", operand1=Decimal("2"), operand2=Decimal("3"))

@@ -66,22 +66,18 @@ Assuming that git is already setup and integrated into the command-line for the 
 
 # Usage
 
-## Running the Calculator REPL:
-
 Once the environment is set up, you can start the calculator REPL by running:
 
 ```
 python main.py
 ```
 
+
+## Using the Calculator REPL
+
 You will see the following upon starting:
 
 ![Starting the program](readme-images/start.png)
-
-
-To see the extent of calculator commands, enter 'help' as prompted:
-
-![The help menu](readme-images/help.png)
 
 
 The REPL will then wait for another command. Assuming the next prompt is a valid operation, you will be asked to enter two numbers, one after another:
@@ -92,6 +88,30 @@ The REPL will then wait for another command. Assuming the next prompt is a valid
 And then after entering both and pressing enter/return, the result will show up in the following format:
 
 ![Result of 'add'](readme-images/result.png)
+
+
+## Help
+
+To see the extent of calculator commands, enter 'help' when prompted:
+
+![The help menu](readme-images/help.png)
+
+
+## Exit
+
+When finished using the REPL, type 'exit' when prompted:
+
+![Typing 'exit'](readme-images/exit.png)
+
+
+## History
+
+When exiting, history is automatically saved (shown in 'exit') in a .csv' file.  
+When the calculator is restarted, it will look for that csv file and if successful, it will load the saved operation(s).  
+To see the operations performed, type 'history' when prompted:
+
+![Performing an operation then exiting and rerunning the calculator](readme-images/history.png)
+
 
 
 ## Running Tests

@@ -404,6 +404,16 @@ class OperationFactory:
     }
 
     @classmethod
+    def list_operations(cls) -> list[str]:
+        """
+        List all registered operation names.
+
+        Returns:
+            list[str]: A list of operation identifiers.
+        """
+        return list(cls._operations.keys())
+
+    @classmethod
     def register_operation(cls, name: str, operation_class: type) -> None:
         """
         Register a new operation type.

@@ -46,7 +46,9 @@ def calculator_repl():
                     # Display available commands with organized sections
                     print(f"\n{Fore.CYAN}Available commands:{Style.RESET_ALL}")
                     print(f"  {Fore.GREEN}Operations:{Style.RESET_ALL}")
-                    print("    add, subtract, multiply, divide, power, root, modulus, int_divide, percent, abs_diff")
+                    available_ops = OperationFactory.list_operations()
+                    formatted_ops = ' , '.join(available_ops)
+                    print(f"    {formatted_ops}")
                     print(f"  {Fore.YELLOW}History:{Style.RESET_ALL}")
                     print("    history - Show calculation history")
                     print("    clear - Clear calculation history")

@@ -22,6 +22,7 @@ This project is a simple command-line calculator built using Python. which suppo
 - Unit tests for the REPL and operation logic.
 - Auto-saving calculation history and optional clearing.
 - Load from and save to file in *.csv* format.
+- Colored terminal output for improved readabilty
 
 # Installation
 
@@ -106,12 +107,11 @@ When finished using the REPL, type 'exit' when prompted:
 
 ## History
 
-When exiting, history is automatically saved (shown in 'exit') in a .csv' file.  
+When exiting, history is automatically saved (shown in 'exit') in a .csv' file (./history/calculator_history.csv).  
 When the calculator is restarted, it will look for that csv file and if successful, it will load the saved operation(s).  
 To see the operations performed, type 'history' when prompted:
 
-![Performing an operation then exiting and rerunning the calculator](readme-images/history.png)
-
+![Performing an operation, exiting, and rerunning the calculator](readme-images/history.png)
 
 
 ## Running Tests
